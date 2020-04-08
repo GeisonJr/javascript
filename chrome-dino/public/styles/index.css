@@ -1,0 +1,22 @@
+html, body {
+  display: grid;
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+canvas {
+  margin-right: auto;
+  margin-left: auto;
+  margin-top: 10%;
+}
+
+#screen {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+
+  border: 10px solid #CCC;
+  background-color: #0BF;
+}
