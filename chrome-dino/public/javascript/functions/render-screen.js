@@ -1,5 +1,6 @@
-export default function renderScreen(screen, game, requestAnimationFrame) {
-	const context = screen.getContext("2d");
+export default function renderScreen(screen, terminal, game, requestAnimationFrame) {
+	const context_terminal = terminal.getContext("2d");
+	const context_screen = screen.getContext("2d");
 
 	/* Scenario */
 	for (const id in game.state.scenarios.clouds) { // Clouds
@@ -7,110 +8,74 @@ export default function renderScreen(screen, game, requestAnimationFrame) {
 		const { color, image } = collision;
 
 		speed.velocity += speed.acceleration;
-		for (let i = 0; i < speed.velocity; i++) {
-			if (coordinates.x + dimensions.width <= 0) {
-				coordinates.y = Math.floor(Math.random() * (screen.height / 4));
-				coordinates.x = screen.width;
-			} else {
-				coordinates.x -= 1;
+		coordinates.x -= speed.velocity;
+		if (coordinates.x + dimensions.width < 0) {
+			coordinates.x = screen.width - speed.velocity;
+			coordinates.y = Math.floor(Math.random() * (screen.height / 4));
+		}
+
+		objColor(coordinates, dimensions, color);
+		objImage(coordinates, dimensions, image);
+	};
+	for (const id in game.state.scenarios.mountains) { // Mountains
+		const { coordinates, dimensions, collision, speed } = game.state.scenarios.mountains[id];
+		const { color, image } = collision;
+
+		speed.velocity += speed.acceleration;
+		coordinates.x -= speed.velocity;
+		if (id === id.substr(0, 4) + "1" || id === id.substr(0, 4) + "3" || id === id.substr(0, 4) + "5") {
+			if (coordinates.x + dimensions.width < 0) {
+				coordinates.x = dimensions.width - speed.velocity;
+			}
+		} else {
+			if (coordinates.x + dimensions.width < 0) {
+				coordinates.x = game.state.scenarios.mountains["scen" + Number.parseInt(id.substr(4) - 1)].coordinates.x + dimensions.width;
 			}
 		}
 
-		collisonArea(coordinates, dimensions, color);
-		entitieImage(coordinates, dimensions, image);
-	};
-	for (const id in game.state.scenarios.mountains1) { // Mountains1
-		const { coordinates, dimensions, collision, speed } = game.state.scenarios.mountains1[id];
-		const { color, image } = collision;
-
-		speed.velocity += speed.acceleration + 0.00005;
-		var form = Number.parseFloat(speed.velocity).toFixed(2);
-		console.log(form)
-
-		if (coordinates.x + dimensions.width <= 0) {
-			coordinates.x = screen.width - Math.ceil(form);
-		} else {
-			coordinates.x -= form;
-		}
-
-		collisonArea(coordinates, dimensions, color);
-		entitieImage(coordinates, dimensions, image);
-	};
-	for (const id in game.state.scenarios.mountains2) { // Mountains2
-		const { coordinates, dimensions, collision, speed } = game.state.scenarios.mountains2[id];
-		const { color, image } = collision;
-
-		speed.velocity += speed.acceleration + 0.0001;
-		var form = Number.parseFloat(speed.velocity).toFixed(2);
-		console.log(form)
-
-		if (coordinates.x + dimensions.width <= 0) {
-			coordinates.x = screen.width - form;
-		} else {
-			coordinates.x -= form;
-		}
-
-		collisonArea(coordinates, dimensions, color);
-		entitieImage(coordinates, dimensions, image);
-	};
-	for (const id in game.state.scenarios.mountains3) { // Mountains3
-		const { coordinates, dimensions, collision, speed } = game.state.scenarios.mountains3[id];
-		const { color, image } = collision;
-
-		speed.velocity += speed.acceleration + 0.00015;
-		var form = Number.parseFloat(speed.velocity).toFixed(2);
-		console.log(form)
-
-		if (coordinates.x + dimensions.width <= 0) {
-			coordinates.x = screen.width - form;
-		} else {
-			coordinates.x -= form;
-			;
-		}
-
-		collisonArea(coordinates, dimensions, color);
-		entitieImage(coordinates, dimensions, image);
+		objColor(coordinates, dimensions, color);
+		objImage(coordinates, dimensions, image);
 	};
 	for (const id in game.state.scenarios.grounds) { // Grounds
 		const { coordinates, dimensions, collision, speed } = game.state.scenarios.grounds[id];
 		const { color, image } = collision;
 
 		speed.velocity += speed.acceleration;
-		for (let i = 0; i < speed.velocity; i++) {
-			if (coordinates.x + dimensions.width <= 0) {
-				coordinates.x = screen.width;
-			} else {
-				coordinates.x -= 1;
+		coordinates.x -= speed.velocity;
+		if (id === id.substr(0, 4) + "1") {
+			if (coordinates.x + dimensions.width < 0) {
+				coordinates.x = dimensions.width - speed.velocity;
+			}
+		} else {
+			if (coordinates.x + dimensions.width < 0) {
+				coordinates.x = game.state.scenarios.grounds["scen" + Number.parseInt(id.substr(4) - 1)].coordinates.x + dimensions.width;
 			}
 		}
 
-		collisonArea(coordinates, dimensions, color);
-		entitieImage(coordinates, dimensions, image);
+		objColor(coordinates, dimensions, color);
+		objImage(coordinates, dimensions, image);
 	};
 
 	/* Obstacles */
 	for (const id in game.state.obstacles.cacti) {
 		const { coordinates, dimensions, collision, speed } = game.state.obstacles.cacti[id];
 		const { color, image } = collision;
-
+		game.state.speed.obstacles = speed.velocity;
 		speed.velocity += speed.acceleration;
-		for (let i = 0; i < speed.velocity; i++) {
-			if (coordinates.x + dimensions.width <= 0) {
-				coordinates.x = screen.width;
-			} else {
-				coordinates.x -= 1;
-			}
+		coordinates.x -= speed.velocity;
+		if (coordinates.x + dimensions.width <= 0) {
+			coordinates.x = screen.width - speed.velocity;
 		}
 
-		collisonArea(coordinates, dimensions, color);
-		entitieImage(coordinates, dimensions, image);
+		objColor(coordinates, dimensions, color);
+		objImage(coordinates, dimensions, image);
 	};
 
 	/* Dinosaurs */
 	for (const id in game.state.dinosaurs) {
 		const { coordinates, dimensions, collision, jump } = game.state.dinosaurs[id];
 		const { color, image } = collision;
-		if (game.state.state.counter > 0) { // se exitir entidades vivas
+		if (game.state.population.current > 0) {
 			if (collision.alive) { // se a entidade estiver viva
 
 				if (jump.enable && jump.jump && jump.jumping === false) {
@@ -129,35 +94,75 @@ export default function renderScreen(screen, game, requestAnimationFrame) {
 					jump.velocity = 0;
 				}
 
-				collisonArea(coordinates, dimensions, color);
-				entitieImage(coordinates, dimensions, image);
-				teste(collision, id);
+				objColor(coordinates, dimensions, color);
+				objImage(coordinates, dimensions, image);
+				objCheckCollision(collision, id);
 
-			} else if (game.state.state.counter === 0) { // senao exitir entidades vivas
-				console.warn("gameover");
 			}
+		} else { // 
+			game.state.gameover = true;
+			console.warn("gameover");
 		}
 	};
 
-	function teste(collision, id) {
+	function objCheckCollision(collision, id) {
 		if (collision.enable) {
 			game.checkCollision(id);
 		}
 	}
-	function collisonArea(coordinates, dimensions, color) {
+	function objColor(coordinates, dimensions, color) {
 		if (color.enable) {
-			context.fillStyle = color.element;
-			context.fillRect(coordinates.x, coordinates.y, dimensions.width, dimensions.height);
+			context_screen.fillStyle = color.element;
+			context_screen.fillRect(coordinates.x, coordinates.y, dimensions.width, dimensions.height);
 		};
 	};
-	function entitieImage(coordinates, dimensions, image) {
+	function objImage(coordinates, dimensions, image) {
 		if (image.enable) {
-			context.drawImage(image.element, coordinates.x, coordinates.y, dimensions.width, dimensions.height);
+			context_screen.drawImage(image.element, coordinates.x, coordinates.y, dimensions.width, dimensions.height);
 		};
 	};
 
 	requestAnimationFrame(() => {
-		context.clearRect(0, 0, screen.width, screen.height); // x, y, width, height
-		renderScreen(screen, game, requestAnimationFrame);
+
+		if (game.state.gameover) {
+			localStorage.setItem("lastDistance", game.state.scoreboard.distance);
+			if (localStorage.getItem("lastDistance") >= localStorage.getItem("bestDistance")) {
+				localStorage.setItem("bestDistance", localStorage.getItem("lastDistance"))
+			}
+		}
+
+		if (!game.state.gameover) {
+			// Terminal render
+			context_terminal.clearRect(0, 0, screen.width, screen.height); // x, y, width, height
+			context_terminal.font = "normal normal 400 15px Consolas";
+			const terminal_layout = [
+				{ title: "unknown@unknown", x: 5, color: "#50FA7B" },
+				{ title: navigator.platform, x: 135, color: "#BD93F9" },
+				{ title: window.location.href, x: 185, color: "#FFB86C" },
+			];
+			for (let i = 0; i < terminal_layout.length; i++) {
+				context_terminal.fillStyle = terminal_layout[i].color;
+				context_terminal.fillText(`${terminal_layout[i].title}`, terminal_layout[i].x, 15);
+			};
+			const terminal_params = [
+				{ title: "Distance", type: "pxs", current: game.state.scoreboard.distance.toFixed(2), best: 500 },
+				{ title: "Points", type: "pts", current: game.state.scoreboard.score.toFixed(0), best: 500, },
+				{ title: "Speed", type: "px/s", current: game.state.speed.obstacles.toFixed(3), best: 500 },
+				{ title: "Population", type: "qty", current: game.state.population.current.toFixed(0), best: Object.keys(game.state.dinosaurs).length }
+			];
+			for (let i = 0; i < terminal_params.length; i++) {
+				context_terminal.fillStyle = "#F8F8F2";
+				context_terminal.fillText(`$ ${terminal_params[i].title}: ${terminal_params[i].current} ${terminal_params[i].type} │ ${terminal_params[i].best} ${terminal_params[i].type}`, 5, 35 + 20 * i);
+			};
+
+			// Screen render
+			context_screen.clearRect(0, 0, screen.width, screen.height); // x, y, width, height
+
+			// calc
+			game.state.scoreboard.distance += game.state.speed.obstacles;
+			game.state.scoreboard.score++;
+
+			renderScreen(screen, terminal, game, requestAnimationFrame);
+		}
 	});
 }

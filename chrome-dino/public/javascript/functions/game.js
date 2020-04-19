@@ -7,126 +7,127 @@ export default function createGame() {
 		},
 		scenarios: {
 			clouds: {},
-			mountains1: {},
-			mountains2: {},
-			mountains3: {},
+			mountains: {},
 			grounds: {},
 		},
-		state: {
-			gameover: false,
-			counter: 0,
-			remove: false,
-			add: false,
-			move: true,
-			collision: true,
+		scoreboard: {
+			distance: 0,
+			bestDistance: 0,
+			lastDistance: 0,
 
-		}
+			score: 0,
+			bestScore: 0,
+			lastScore: 0
+		},
+		speed: {
+			obstacles: 0
+		},
+		population: {
+			default: 0,
+			current: 0,
+		},
+		gameover: false
 	};
+
+	const debug = {
+		add: false, // Add messages
+		debugAdd: (func, id) => {
+			if (debug.add) {
+				console.warn(`${func} -> '${id}' has been added`);
+			}
+		},
+
+		move: false, // Move messages
+		debugMove: (message) => {
+			if (debug.move) {
+				console.warn(message);
+			}
+		},
+
+		remove: false, // Remove messages
+		debugRemove: (func, id) => {
+			if (debug.remove) {
+				console.warn(`${func} -> '${id}' has been removed`);
+			}
+		},
+
+		collision: false, // Collision messages
+		debugCollision: (message) => {
+			if (debug.collision) {
+				console.warn(message);
+			}
+		},
+	};
+
 	// Dino
 	function addDino(command) {
-		const { coordinates, dimensions, collision, jump, id } = command;
-		state.dinosaurs[id] = { coordinates, dimensions, collision, jump };
-		state.state.counter++;
-		if (state.state.add) {
-			console.warn(`game.addDino() -> '${id}' has been added`);
-		}
+		const { coordinates, dimensions, quantity, collision, score, jump, id } = command;
+		state.dinosaurs[id] = { coordinates, dimensions, quantity, collision, score, jump };
+		state.population.default = Object.keys(state.dinosaurs).length;
+		state.population.current = state.population.default;
+		debug.debugAdd("game.addDino()", id);
 	};
 	function removeDino(command) {
-		const { dinoId: id } = command;
+		const { id } = command;
 		state.dinosaurs[id].collision.alive = false;
-		state.state.counter--;
-		if (state.state.remove) {
-			console.warn(`game.removeDino() -> '${id}' has been removed`);
-		}
+		state.population.current--;
+		debug.debugRemove("game.debugRemove()", id);
 	};
 
 	// Cloud
 	function addCloud(command) {
 		const { coordinates, dimensions, collision, speed, id } = command;
 		state.scenarios.clouds[id] = { coordinates, dimensions, collision, speed };
-		if (state.state.add) {
-			console.warn(`game.addCloud() -> '${id}' has been added`);
-		}
+		debug.debugAdd("game.addCloud()", id);
 	};
 
 	// Mountain1
-	function addMountain1(command) {
+	function addMountain(command) {
 		const { coordinates, dimensions, collision, speed, id } = command;
-		state.scenarios.mountains1[id] = { coordinates, dimensions, collision, speed };
-		if (state.state.add) {
-			console.warn(`game.addMountain1() -> '${id}' has been added`);
-		}
-	};
-	// Mountain2
-	function addMountain2(command) {
-		const { coordinates, dimensions, collision, speed, id } = command;
-		state.scenarios.mountains2[id] = { coordinates, dimensions, collision, speed };
-		if (state.state.add) {
-			console.warn(`game.addMountain2() -> '${id}' has been added`);
-		}
-	};
-	// Mountain3
-	function addMountain3(command) {
-		const { coordinates, dimensions, collision, speed, id } = command;
-		state.scenarios.mountains3[id] = { coordinates, dimensions, collision, speed };
-		if (state.state.add) {
-			console.warn(`game.addMountain3() -> '${id}' has been added`);
-		}
+		state.scenarios.mountains[id] = { coordinates, dimensions, collision, speed };
+		debug.debugAdd("game.addMountain()", id);
 	};
 
 	// Ground
 	function addGround(command) {
 		const { coordinates, dimensions, collision, speed, id } = command;
 		state.scenarios.grounds[id] = { coordinates, dimensions, collision, speed };
-		if (state.state.add) {
-			console.warn(`game.addGround() -> '${id}' has been added`);
-		}
+		debug.debugAdd("game.addGround()", id);
 	};
 
 	// Obstacle
 	function addCactus(command) {
 		const { coordinates, dimensions, collision, speed, id } = command;
 		state.obstacles.cacti[id] = { coordinates, dimensions, collision, speed };
-		if (state.state.add) {
-			console.warn(`game.addCactus() -> '${id}' has been added`);
-		}
+		debug.debugAdd("game.addCactus()", id);
 	};
 
 	function moveDino(command) {
 		const { dinoId, keyPressed } = command;
-
-		if (state.state.move) {
-			console.log(`game.moveDino() -> Moving '${dinoId}' with '${keyPressed}'`);
-		}
-
+		
 		const Moves = {
-			// Arrows
-			ArrowUp(dino) { // highest value between dino.coordinates.y - 1 and 0, positive >= zero
+			ArrowUp(dino) {
 				dino.jump.jump = true;
+				debug.gameover = true;
 				return "Up";
 			},
-			ArrowDown(dino) { // lowest value between dino.coordinates.y + 1 and screen.height - 1, positive < screen.height
+			ArrowDown(dino) {
 				return "Down";
 			}
 		};
-
+		
 		const dino = state.dinosaurs[dinoId];
 		const move = Moves[keyPressed];
-
+		
+		debug.debugMove(`game.moveDino() -> Moving '${dinoId}' with '${keyPressed}'`);
 		if (dino && move) {
 			const direction = move(dino);
-			if (state.state.move) {
-				console.log(`game.moveDino().${keyPressed}() -> '${dinoId}' moved to '${direction}'`);
-			}
+			debug.debugMove(`game.moveDino().${keyPressed}() -> '${dinoId}' moved to '${direction}'`);
 			checkCollision(dinoId);
 		} else if (!dino) {
-			if (state.state.move) {
-				console.warn(`game.moveDino() -> '${dinoId}' is not a valid dino`);
-			}
+			debug.debugMove(`game.moveDino() -> '${dinoId}' is not a valid dino`);
 		} else if (!move) {
-			if (state.state.move) {
-				console.warn(`game.moveDino() -> '${keyPressed}' is not a valid movement`);
-			}
+			debug.debugMove(`game.moveDino() -> '${keyPressed}' is not a valid movement`);
 		};
 	};
 
@@ -135,16 +136,10 @@ export default function createGame() {
 			const obstacle = state.obstacles.cacti[obstacleId];
 			const dino = state.dinosaurs[dinoId];
 
-			if (dino.coordinates.x < obstacle.coordinates.x + obstacle.dimensions.width) {
-				if (dino.coordinates.x + dino.dimensions.width > obstacle.coordinates.x) {
-					if (dino.coordinates.y < obstacle.coordinates.y + obstacle.dimensions.height) {
-						if (dino.coordinates.y + dino.dimensions.height > obstacle.coordinates.y) {
-							removeDino({ dinoId: dinoId });
-							if (state.state.collision) {
-								console.warn(`game.checkCollision() -> '${dinoId}' collided with '${obstacleId}'`);
-							};
-						};
-					};
+			if (dino.coordinates.x < obstacle.coordinates.x + obstacle.dimensions.width && dino.coordinates.x + dino.dimensions.width > obstacle.coordinates.x) {
+				if (dino.coordinates.y < obstacle.coordinates.y + obstacle.dimensions.height && dino.coordinates.y + dino.dimensions.height > obstacle.coordinates.y) {
+					removeDino({ id: dinoId });
+					debug.debugCollision(`game.checkCollision() -> '${dinoId}' collided with '${obstacleId}'`);
 				};
 			};
 		};
@@ -152,10 +147,9 @@ export default function createGame() {
 
 	return {
 		state,
-		addDino, removeDino,
 		addCactus,
-		addMountain1, addMountain2, addMountain3,
-		addCloud, addGround,
+		addDino, removeDino,
+		addCloud, addMountain, addGround,
 		checkCollision, moveDino
 	};
-}
+};
