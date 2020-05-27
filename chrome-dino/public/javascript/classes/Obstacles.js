@@ -1,5 +1,5 @@
 export class Cactus {
-	constructor(screen, i, quantity) {
+	constructor(screen, i, quantity, game) {
 
 		const image = new Image();
 		image.src = `./assets/obstacles/cacti/cactus${i}.bmp`;
@@ -20,11 +20,19 @@ export class Cactus {
 		}
 
 		/* Coordinates params */
-		this.coordinates = {
-			x: this.screen.width + (this.i * ((this.screen.width + this.image.width) / this.quantity)), // Coodinate X
-			y: this.screen.height - (this.dimensions.height + 3) // Coodinate Y
-
-		};
+		if (this.i === 0) {
+			this.coordinates = {
+				x: this.screen.width + (this.i * (this.screen.width / (this.quantity * .5))), // Coodinate X
+				// x: this.screen.width + 500 + ((Math.random() * 200) - 100), // Coodinate X
+				y: this.screen.height - (this.dimensions.height + 3) // Coodinate Y
+			};
+		} else {
+			this.coordinates = {
+				x: this.screen.width + (this.i * (this.screen.width / (this.quantity))), // Coodinate X
+				// x: game.state.obstacles.cacti[`cactus${this.i}`].coordinates.x + this.screen.width + 500 + ((Math.random() * 200) - 100), // Coodinate X
+				y: this.screen.height - (this.dimensions.height + 3) // Coodinate Y
+			};
+		}
 
 		/* Collison params */
 		this.collision = {

@@ -25,7 +25,7 @@ const quantity = {
 	mountains: 6, // Min = 0, Min Recomended = 2, Recomended = 6, Max Recomended = 6, Max = 6 => 0, 2, 4, 6
 
 	/* Obstacles */
-	cacti: 2, // Min = 0, Min Recomended = 1, Recomended = 3, Max Recomended = 4, Max = 5
+	cacti: 4, // Min = 0, Min Recomended = 1, Recomended = 3, Max Recomended = 4, Max = 5
 
 	/* Dinosaurs */
 	dinosaurs: 1, // Min = 0, Min Recomended = 1, Recomended = 1, Max Recomended = 15, Max = Infinity
@@ -44,7 +44,7 @@ for (let i = 0; i < quantity.mountains; i++) {
 
 /* Obstacles */
 for (let i = 0; i < quantity.cacti; i++) {
-	game.addCactus(new Cactus(screen, i, quantity.cacti).add());
+	game.addCactus(new Cactus(screen, i, quantity.cacti, game).add());
 };
 
 /* Dinosaurs */

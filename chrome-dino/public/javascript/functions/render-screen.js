@@ -11,7 +11,7 @@ export default function renderScreen(screen, terminal, game, requestAnimationFra
 		coordinates.x -= speed.velocity;
 		if (coordinates.x + dimensions.width < 0) {
 			coordinates.x = screen.width - speed.velocity;
-			coordinates.y = Math.floor(Math.random() * (screen.height / 4));
+			coordinates.y = Math.floor(Math.random() * (screen.height / 4)); // Usar apenas 1/4 da tela, de ciam para baixo
 		}
 
 		objColor(coordinates, dimensions, color);
@@ -60,11 +60,23 @@ export default function renderScreen(screen, terminal, game, requestAnimationFra
 	for (const id in game.state.obstacles.cacti) {
 		const { coordinates, dimensions, collision, speed } = game.state.obstacles.cacti[id];
 		const { color, image } = collision;
+
 		game.state.speed.obstacles = speed.velocity;
 		speed.velocity += speed.acceleration;
 		coordinates.x -= speed.velocity;
 		if (coordinates.x + dimensions.width <= 0) {
 			coordinates.x = screen.width - speed.velocity;
+			// console.log(Number.parseInt(id.substr(6) - 1));
+
+			// if (id === id.substr(0, 6) + "1") {
+			// 	if (coordinates.x + dimensions.width < 0) {
+			// 		coordinates.x = dimensions.width - speed.velocity;
+			// 	}
+			// } else {
+			// 	if (coordinates.x + dimensions.width < 0) {
+			// 		coordinates.x = game.state.obstacles.cacti[`cactus${Number.parseInt(id.substr(6) - 1)}`].coordinates.x + 500
+			// 	}
+			// }
 		}
 
 		objColor(coordinates, dimensions, color);
@@ -145,14 +157,38 @@ export default function renderScreen(screen, terminal, game, requestAnimationFra
 				context_terminal.fillText(`${terminal_layout[i].title}`, terminal_layout[i].x, 15);
 			};
 			const terminal_params = [
-				{ title: "Distance", type: "pxs", current: game.state.scoreboard.distance.toFixed(2), best: 500 },
-				{ title: "Points", type: "pts", current: game.state.scoreboard.score.toFixed(0), best: 500, },
-				{ title: "Speed", type: "px/s", current: game.state.speed.obstacles.toFixed(3), best: 500 },
-				{ title: "Population", type: "qty", current: game.state.population.current.toFixed(0), best: Object.keys(game.state.dinosaurs).length }
+				{
+					title: "Distance", type: "pxs",
+					current: game.state.scoreboard.distance.toFixed(2), best: 500
+				},
+				{
+					title: "Points", type: "pts",
+					current: game.state.scoreboard.score.toFixed(0), best: 500,
+				},
+				{
+					title: "Speed", type: "px/s",
+					current: game.state.speed.obstacles.toFixed(3), best: 500
+				},
+				{
+					title: "Population", type: "qty",
+					current: game.state.population.current.toFixed(0), best: Object.keys(game.state.dinosaurs).length
+				}
 			];
 			for (let i = 0; i < terminal_params.length; i++) {
 				context_terminal.fillStyle = "#F8F8F2";
-				context_terminal.fillText(`$ ${terminal_params[i].title}: ${terminal_params[i].current} ${terminal_params[i].type} │ ${terminal_params[i].best} ${terminal_params[i].type}`, 5, 35 + 20 * i);
+				context_terminal.fillText(
+					`$ ${
+					terminal_params[i].title
+					}: ${
+					terminal_params[i].current
+					} ${
+					terminal_params[i].type
+					} │ ${
+					terminal_params[i].best
+					} ${
+					terminal_params[i].type
+					}`, 5, 35 + (20 * i)
+				);
 			};
 
 			// Screen render
